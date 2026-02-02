@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+<title>MEMECOIN SNIPER</title>
+<script src="https://unpkg.com/@solana/web3.js@1.95.8/lib/index.iife.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0a0a0f;--bg1:#0f0f18;--bg2:#111118;--bg3:#1a1a24;
+  --border:#1e1e2e;--border2:#2e2e3e;
+  --txt:#cccce0;--dim:#666;--hi:#fff;
+  --green:#00e88a;--red:#ff5555;--yellow:#f0c040;
+  --font:'SF Mono','Fira Code','Consolas',monospace;
+}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:var(--font);font-size:13px;overflow-x:hidden;}
+input:focus,button:focus{outline:none;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px);}
+#app{display:flex;flex-direction:column;min-height:100vh;max-width:480px;margin:0 auto;}
+.header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--bg1);border-bottom:1px solid var(--border);}
+.logo{font-size:18px;font-weight:700;color:#fff;letter-spacing:2px;}
+.logo-sub{font-size:9px;color:var(--dim);letter-spacing:2px;display:block;margin-top:1px;}
+.header-status{font-size:11px;color:var(--dim);text-align:right;line-height:1.5;}
+.header-status .bal{color:var(--green);font-weight:700;}
+.banner{padding:10px 16px;font-size:12px;border-bottom:1px solid var(--border);display:none;line-height:1.5;}
+.banner.show{display:block;}
+.banner-err{background:#2a1010;color:#ff6666;border-color:#3a1a1a;}
+.banner-warn{background:#1f1a0a;color:var(--yellow);border-color:#3a3010;}
+.key-section{background:var(--bg1);border-bottom:1px solid var(--border);padding:14px 16px;}
+.key-label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.key-row{display:flex;gap:8px;align-items:center;}
+.key-input{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:5px;color:#fff;padding:10px 12px;font-size:13px;font-family:var(--font);-webkit-text-security:disc;}
+.key-input::placeholder{color:#444;}
+.btn-key{background:var(--green);color:#0a0a0f;border:none;border-radius:5px;font-weight:700;font-size:12px;padding:10px 14px;cursor:pointer;font-family:var(--font);white-space:nowrap;flex-shrink:0;}
+.btn-key.loaded{background:var(--red);color:#fff;}
+.key-hint{font-size:10px;color:#444;margin-top:6px;line-height:1.5;}
+.controls{padding:12px 16px;background:var(--bg1);border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:10px;}
+.btn-main{border:none;border-radius:6px;font-weight:700;font-size:15px;padding:12px;cursor:pointer;font-family:var(--font);letter-spacing:1px;width:100%;transition:filter 0.15s;}
+.btn-main:active{filter:brightness(0.82);}
+.btn-start{background:var(--green);color:#0a0a0f;}
+.btn-stop{background:var(--red);color:#fff;}
+.btn-main:disabled{opacity:0.3;cursor:not-allowed;}
+.stats-row{display:flex;gap:8px;}
+.stat-box{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;}
+.stat-label{font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;}
+.stat-val{font-size:14px;font-weight:700;margin-top:2px;}
+.tabs{display:flex;gap:4px;}
+.tab{flex:1;background:transparent;border:1px solid var(--border2);color:var(--dim);border-radius:4px;padding:6px 4px;cursor:pointer;font-size:11px;font-family:var(--font);text-align:center;transition:all 0.15s;}
+.tab.active{background:var(--bg2);color:#fff;border-color:var(--border2);}
+.page{display:none;padding:12px 16px 40px;}
+.page.active{display:block;}
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:12px;overflow:hidden;}
+.panel-head{padding:8px 12px;border-bottom:1px solid var(--border);font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;background:var(--bg1);}
+.empty{padding:20px;text-align:center;color:#444;font-size:12px;}
+.pos-card{padding:10px 12px;border-bottom:1px solid var(--bg3);}
+.pos-card:last-child{border-bottom:none;}
+.pos-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+.pos-sym{font-weight:700;color:#fff;font-size:15px;}
+.pos-badge{font-size:11px;font-weight:600;padding:2px 7px;border-radius:10px;}
+.pos-bot{display:flex;gap:14px;flex-wrap:wrap;}
+.pos-detail{font-size:11px;color:var(--dim);}
+.scan-row{display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid var(--bg3);gap:8px;}
+.scan-row:last-child{border-bottom:none;}
+.scan-sym{font-weight:600;color:var(--hi);flex:1;font-size:14px;}
+.scan-spike{font-weight:700;font-size:13px;color:var(--yellow);}
+.scan-liq{font-size:10px;color:var(--dim);}
+.setting-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;margin-bottom:8px;}
+.setting-label{color:#aaa;font-size:12px;flex:1;padding-right:10px;}
+.setting-input{background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:#fff;padding:6px 8px;font-size:14px;width:90px;font-family:var(--font);text-align:right;}
+.btn-sm{background:var(--bg3);color:#aaa;border:1px solid var(--border2);border-radius:4px;padding:5px 10px;cursor:pointer;font-size:11px;font-family:var(--font);}
+.log-panel{background:var(--bg);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;height:calc(100vh - 300px);min-height:220px;}
+.log-head{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;border-bottom:1px solid var(--border);background:var(--bg1);font-size:10px;color:var(--dim);}
+.log-scroll{flex:1;overflow-y:auto;padding:4px 0;-webkit-overflow-scrolling:touch;}
+.log-line{display:flex;gap:8px;padding:2px 12px;font-size:11px;line-height:1.7;}
+.log-ts{color:#333;min-width:62px;flex-shrink:0;}
+.log-info{color:#aaaacc;}
+.log-success{color:var(--green);}
+.log-error{color:var(--red);}
+.log-warn{color:var(--yellow);}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="header">
+  <div><span class="logo">⚡ MEMECOIN</span><span class="logo-sub">SNIPER v2.1 🐋</span></div>
+  <div class="header-status" id="headerStatus">No wallet loaded</div>
+</div>
+<div class="banner banner-err" id="errBanner"></div>
+<div class="banner banner-warn show">⚠️ This bot trades real SOL. Only use a dedicated wallet with small funds you can afford to lose.</div>
+<div class="key-section">
+  <div class="key-label">Wallet Private Key</div>
+  <div class="key-row">
+    <input type="password" class="key-input" id="keyInput" placeholder="Paste your base58 private key…"/>
+    <button class="btn-key" id="btnKey" onclick="loadKey()">Load</button>
+  </div>
+  <div class="key-hint">🔒 Your key never leaves this device — it signs transactions locally in your browser.</div>
+</div>
+<div class="controls">
+  <button class="btn-main btn-start" id="btnBot" onclick="toggleBot()" disabled>▶  START BOT</button>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-label">Open</div><div class="stat-val" id="statOpen" style="color:var(--yellow)">0</div></div>
+    <div class="stat-box"><div class="stat-label">Closed</div><div class="stat-val" id="statClosed" style="color:#8888aa">0</div></div>
+    <div class="stat-box"><div class="stat-label">PnL</div><div class="stat-val" id="statPnl" style="color:var(--green)">0.000000</div></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+    <button class="tab" onclick="switchTab('settings')">⚙️ Settings</button>
+    <button class="tab" onclick="switchTab('log')">📋 Log</button>
+  </div>
+</div>
+<div class="page active" id="page-dashboard">
+  <div class="panel"><div class="panel-head">Open Positions</div><div id="openList"><div class="empty">No open positions</div></div></div>
+  <div class="panel"><div class="panel-head">Closed Trades</div><div id="closedList"><div class="empty">No closed trades yet</div></div></div>
+  <div class="panel"><div class="panel-head">Whale Candidates (Avg Buy >$3k)</div><div id="scanList"><div class="empty">Waiting for scan…</div></div></div>
+</div>
+<div class="page" id="page-settings">
+  <div id="settingsContainer"></div>
+  <button class="btn-sm" onclick="resetSettings()" style="width:100%;padding:10px;margin-top:4px;">↺ Reset to defaults</button>
+</div>
+<div class="page" id="page-log">
+  <div class="log-panel">
+    <div class="log-head"><span id="logCount">0 entries</span><button class="btn-sm" onclick="clearLog()">Clear</button></div>
+    <div class="log-scroll" id="logScroll"></div>
+  </div>
+</div>
+</div>
+<script>
+// ════════════════════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════════════════════
+const SOL_MINT="So11111111111111111111111111111111111111112";
+const JUP_QUOTE="https://public.jupiterapi.com/quote";
+const JUP_SWAP="https://public.jupiterapi.com/swap";
+const DEX_BOOSTS="https://api.dexscreener.com/token-boosts/top/v1";
+const DEX_PAIRS="https://api.dexscreener.com/token-pairs/v1/solana/";
+const LAMPORTS=1e9;
+
+const DEFAULTS={buyAmountSol:0.05,takeProfitPct:3,maxHoldSecs:30,minAvgBuyUsd:3000,maxLiquidityUsd:500000,maxConcurrent:2,slippageBps:200};
+const SETTING_DEFS=[
+  {key:"buyAmountSol",     label:"Buy Amount (SOL)",        step:0.01,  min:0.001},
+  {key:"takeProfitPct",    label:"Take Profit (%)",        step:0.5,   min:0.5},
+  {key:"maxHoldSecs",      label:"Max Hold (seconds)",     step:5,     min:10},
+  {key:"minAvgBuyUsd",     label:"Min Avg Buy Size (USD)", step:500,   min:500},
+  {key:"maxLiquidityUsd",  label:"Max Liquidity (USD)",    step:50000, min:10000},
+  {key:"maxConcurrent",    label:"Max Open Positions",     step:1,     min:1},
+  {key:"slippageBps",      label:"Slippage (basis points)",step:50,    min:50},
+];
+
+// ════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════
+let settings={...DEFAULTS}, keypair=null, pubkey=null;
+let rpcUrl="https://api.mainnet-beta.solana.com", connection=null, balance=null;
+let botRunning=false, stopFlag=false;
+let positions=[], closed=[], seenTokens=new Set(), lastCands=[], logs=[];
+
+// ════════════════════════════════════════════════════════════════
+// LOGGING
+// ════════════════════════════════════════════════════════════════
+function ts(){return new Date().toLocaleTimeString([],{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+function log(msg,type='info'){logs.unshift({ts:ts(),msg,type});if(logs.length>250)logs.length=250;renderLog();}
+function renderLog(){
+  const el=document.getElementById('logScroll');
+  el.innerHTML=logs.length?logs.map(l=>`<div class="log-line"><span class="log-ts">${l.ts}</span><span class="log-${l.type}">${esc(l.msg)}</span></div>`).join(''):'<div class="empty">No logs yet.</div>';
+  document.getElementById('logCount').textContent=logs.length+' entries';
+}
+function clearLog(){logs=[];renderLog();}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function showErr(msg){const b=document.getElementById('errBanner');b.textContent=msg;b.classList.add('show');setTimeout(()=>b.classList.remove('show'),5000);}
+
+// ════════════════════════════════════════════════════════════════
+// BASE58 DECODE
+// ════════════════════════════════════════════════════════════════
+const B58='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+function bs58Decode(str){
+  let r=[0];
+  for(const c of str){
+    const i=B58.indexOf(c);if(i<0)throw new Error('Bad base58 char: '+c);
+    let carry=i;
+    for(let j=0;j<r.length;j++){carry+=r[j]*58;r[j]=carry&0xff;carry>>=8;}
+    while(carry>0){r.push(carry&0xff);carry>>=8;}
+  }
+  for(const c of str){if(c==='1')r.push(0);else break;}
+  return new Uint8Array(r.reverse());
+}
+
+// ════════════════════════════════════════════════════════════════
+// LOAD / CLEAR KEY
+// ════════════════════════════════════════════════════════════════
+async function loadKey(){
+  if(keypair){
+    keypair=null;pubkey=null;balance=null;connection=null;
+    document.getElementById('keyInput').value='';
+    document.getElementById('btnKey').textContent='Load';
+    document.getElementById('btnKey').classList.remove('loaded');
+    document.getElementById('headerStatus').innerHTML='No wallet loaded';
+    document.getElementById('btnBot').disabled=true;
+    log('Key cleared'); return;
+  }
+  const raw=document.getElementById('keyInput').value.trim();
+  if(!raw){showErr('Paste your private key first');return;}
+  try{
+    keypair=solanaWeb3.Keypair.fromSecretKey(bs58Decode(raw));
+    pubkey=keypair.publicKey.toString();
+    connection=new solanaWeb3.Connection(rpcUrl,'finalized');
+    balance=await connection.getBalance(keypair.publicKey)/LAMPORTS;
+    document.getElementById('btnKey').textContent='Clear';
+    document.getElementById('btnKey').classList.add('loaded');
+    document.getElementById('headerStatus').innerHTML=`<span class="bal">${balance.toFixed(4)} SOL</span><br/>${pubkey.slice(0,8)}…${pubkey.slice(-4)}`;
+    document.getElementById('btnBot').disabled=false;
+    log(`Wallet loaded: ${pubkey.slice(0,8)}…${pubkey.slice(-4)} | ${balance.toFixed(4)} SOL`,'success');
+    if(balance<settings.buyAmountSol*1.5)log('⚠️ Low balance — fund this wallet before starting.','warn');
+  }catch(e){keypair=null;pubkey=null;showErr('Invalid key: '+(e.message||e));}
+}
+
+// ════════════════════════════════════════════════════════════════
+// SIGN & SEND — handles versioned and legacy TXs
+// ════════════════════════════════════════════════════════════════
+async function signAndSend(base64Tx){
+  const raw=Uint8Array.from(atob(base64Tx),c=>c.charCodeAt(0));
+  const isVersioned=(raw[0]&0x80)!==0;
+  log('TX type: '+(isVersioned?'versioned':'legacy'));
+  if(isVersioned){
+    const vTx=solanaWeb3.VersionedTransaction.deserialize(raw);
+    vTx.sign([keypair]);
+    return await connection.sendRawTransaction(vTx.serialize(),{skipPreflight:false,preflightCommitment:'finalized'});
+  } else {
+    const tx=solanaWeb3.Transaction.from(raw);
+    tx.sign(keypair);
+    return await connection.sendRawTransaction(tx.serialize(),{skipPreflight:false,preflightCommitment:'finalized'});
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// SCAN — DexScreener with WHALE DETECTION via avg buy size
+// Calculates: avgBuySize = volume5m / buyCount5m
+// If avgBuySize >= $3k → whale activity detected
+// ════════════════════════════════════════════════════════════════
+async function scanForWhales(){
+  try{
+    const br=await fetch(DEX_BOOSTS);
+    if(!br.ok){log('DexScreener '+br.status,'error');return[];}
+    const boosts=await br.json();
+    const mints=[];
+    for(const b of(boosts||[])){
+      if(b.chainId==='solana'&&b.tokenAddress&&!mints.includes(b.tokenAddress)){
+        mints.push(b.tokenAddress);
+        if(mints.length>=100)break; // scan top 100 trending
+      }
+    }
+    if(!mints.length){log('No trending tokens','warn');return[];}
+    log(`Scanning ${mints.length} trending tokens for whale buys`);
+
+    const allPairs=[];
+    for(const mint of mints){
+      try{
+        const r=await fetch(DEX_PAIRS+mint);
+        if(r.ok){const d=await r.json();if(Array.isArray(d))allPairs.push(...d);}
+      }catch{}
+    }
+
+    const out=[];
+    for(const p of allPairs){
+      try{
+        const addr=p.baseToken?.address,sym=p.baseToken?.symbol;
+        const liq=p.liquidity?.usd||0;
+        const v5=p.volume?.m5||0;           // 5min volume USD
+        const buyCount=p.txns?.m5?.buys||0; // number of buys in 5min
+        const price=parseFloat(p.priceUsd||0);
+        const priceChange5m=parseFloat(p.priceChange?.m5||0);
+
+        if(seenTokens.has(addr)||price===0)continue;
+
+        // Filter 1: LOW liquidity (<$500k)
+        if(liq>settings.maxLiquidityUsd||liq<10000)continue;
+
+        // Filter 2: Has recent volume
+        if(v5<1000||buyCount<1)continue;
+
+        // Filter 3: WHALE DETECTION — calculate average buy size
+        const avgBuySize=v5/buyCount;
+        if(avgBuySize<settings.minAvgBuyUsd)continue;
+
+        // Filter 4: Price momentum (up in last 5min)
+        if(priceChange5m<3)continue;
+
+        out.push({
+          mint:addr,
+          symbol:sym,
+          priceUsd:price,
+          liquidity:liq,
+          volume5min:v5,
+          buyCount,
+          avgBuySize,
+          priceChange5m
+        });
+      }catch{}
+    }
+
+    out.sort((a,b)=>b.avgBuySize-a.avgBuySize); // highest avg buy first
+    log(`Found ${out.length} tokens with large buys (avg >$${settings.minAvgBuyUsd})`);
+    return out;
+  }catch(e){log('Scan error: '+(e.message||e),'error');return[];}
+}
+
+// ════════════════════════════════════════════════════════════════
+// JUPITER
+// ════════════════════════════════════════════════════════════════
+async function getQuote(inM,outM,amt){
+  const p=new URLSearchParams({inputMint:inM,outputMint:outM,amount:String(amt),slippageBps:String(settings.slippageBps),restrictIntermediateTokens:'true'});
+  const r=await fetch(JUP_QUOTE+'?'+p);
+  return r.ok?r.json():null;
+}
+
+// ════════════════════════════════════════════════════════════════
+// BUY
+// ════════════════════════════════════════════════════════════════
+async function buyToken(c){
+  const{mint,symbol,priceUsd,avgBuySize,buyCount,volume5min,liquidity}=c;
+  const amt=Math.floor(settings.buyAmountSol*LAMPORTS);
+  log(`🐋 WHALE COPY: ${symbol} | avgBuy $${avgBuySize.toFixed(0)} (${buyCount} buys) | vol $${volume5min.toFixed(0)} | liq $${liquidity.toFixed(0)}`);
+  const q=await getQuote(SOL_MINT,mint,amt);
+  if(!q){log('✗ No quote for '+symbol,'error');return;}
+  const outAmt=parseInt(q.outAmount||0);
+  if(!outAmt){log('✗ Zero output for '+symbol,'error');return;}
+  const sr=await fetch(JUP_SWAP,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userPublicKey:pubkey,quoteResponse:q,prioritizationFeeLamports:'auto'})});
+  if(!sr.ok){log('✗ Jupiter swap '+sr.status,'error');return;}
+  const swapResp=await sr.json();
+  if(!swapResp.swapTransaction){log('✗ No swapTransaction','error');return;}
+  let sig;
+  try{sig=await signAndSend(swapResp.swapTransaction);}catch(e){log('✗ Sign/send: '+(e.message||e),'error');return;}
+  log('✓ Buy TX: '+sig.slice(0,44)+'…','success');
+  seenTokens.add(mint);
+  positions.push({id:Date.now(),mint,symbol,entryPriceUsd:priceUsd,buyTime:Date.now(),amountLamports:amt,tokenAmount:outAmt});
+  refreshBalance();renderDashboard();
+  log(`✓ Holding ${outAmt} units of ${symbol}`,'success');
+}
+
+// ════════════════════════════════════════════════════════════════
+// SELL
+// ════════════════════════════════════════════════════════════════
+async function sellToken(pos,reason){
+  log(`🔄 Selling ${pos.symbol} | ${reason}`);
+  const q=await getQuote(pos.mint,SOL_MINT,pos.tokenAmount);
+  if(!q){log('✗ No sell quote','error');return false;}
+  const sr=await fetch(JUP_SWAP,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userPublicKey:pubkey,quoteResponse:q,prioritizationFeeLamports:'auto'})});
+  if(!sr.ok){log('✗ Sell swap '+sr.status,'error');return false;}
+  const swapResp=await sr.json();
+  if(!swapResp.swapTransaction){log('✗ No sell swapTransaction','error');return false;}
+  let sig;
+  try{sig=await signAndSend(swapResp.swapTransaction);}catch(e){log('✗ Sell: '+(e.message||e),'error');return false;}
+  const solRec=parseInt(q.outAmount||0);
+  const pnlSol=(solRec-pos.amountLamports)/LAMPORTS;
+  const pnlPct=(pnlSol/settings.buyAmountSol)*100;
+  log('✓ Sell TX: '+sig.slice(0,44)+'…','success');
+  log(`✓ PnL: ${pnlSol>=0?'+':''}${pnlSol.toFixed(6)} SOL (${pnlPct>=0?'+':''}${pnlPct.toFixed(2)}%)`,pnlPct>=0?'success':'warn');
+  closed.push({...pos,pnlSol,pnlPct,closedAt:Date.now()});
+  positions=positions.filter(p=>p.id!==pos.id);
+  refreshBalance();renderDashboard();updateStats();
+  return true;
+}
+
+// ════════════════════════════════════════════════════════════════
+// MONITOR
+// ════════════════════════════════════════════════════════════════
+async function monitorPositions(){
+  for(const pos of[...positions]){
+    if(stopFlag)return;
+    const q=await getQuote(pos.mint,SOL_MINT,pos.tokenAmount);
+    if(!q)continue;
+    const cur=parseInt(q.outAmount||0)/LAMPORTS;
+    const ent=pos.amountLamports/LAMPORTS;
+    const pct=((cur-ent)/ent)*100;
+    const elapsed=(Date.now()-pos.buyTime)/1000;
+    log(`👀 ${pos.symbol} | ${pct>=0?'+':''}${pct.toFixed(2)}% | ${elapsed.toFixed(0)}s`);
+    if(pct>=settings.takeProfitPct){await sellToken(pos,`profit ${pct.toFixed(2)}%`);return;}
+    if(elapsed>=settings.maxHoldSecs){await sellToken(pos,`timeout ${elapsed.toFixed(0)}s`);return;}
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// BOT LOOP
+// ════════════════════════════════════════════════════════════════
+async function botLoop(){
+  while(!stopFlag){
+    try{
+      if(positions.length)await monitorPositions();
+      if(stopFlag)break;
+      if(positions.length<settings.maxConcurrent){
+        const whales=await scanForWhales();
+        lastCands=whales;renderScanList();
+        if(whales.length){log('🔍 '+whales.length+' whale candidates');await buyToken(whales[0]);}
+        else log('🔍 No large buys found.');
+      }else log('⏳ At max positions ('+settings.maxConcurrent+')');
+    }catch(e){log('Loop error: '+(e.message||e),'error');}
+    const end=Date.now()+5000;
+    while(Date.now()<end&&!stopFlag){
+      await sleep(2000);
+      if(positions.length&&!stopFlag){try{await monitorPositions();}catch{}}
+    }
+  }
+  botRunning=false;renderBotBtn();
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+// ════════════════════════════════════════════════════════════════
+// TOGGLE
+// ════════════════════════════════════════════════════════════════
+function toggleBot(){
+  if(botRunning){stopFlag=true;botRunning=false;log('⏹ Bot stopped');renderBotBtn();return;}
+  if(!keypair){showErr('Load your key first');return;}
+  if(balance<settings.buyAmountSol*1.1){showErr('Insufficient balance');return;}
+  stopFlag=false;botRunning=true;
+  log('🚀 Bot started — scanning every 5s, monitoring every 2s','success');
+  renderBotBtn();botLoop();
+}
+function renderBotBtn(){
+  const b=document.getElementById('btnBot');
+  b.textContent=botRunning?'⏹  STOP BOT':'▶  START BOT';
+  b.className='btn-main '+(botRunning?'btn-stop':'btn-start');
+  b.disabled=!keypair;
+}
+
+// ════════════════════════════════════════════════════════════════
+// BALANCE
+// ════════════════════════════════════════════════════════════════
+async function refreshBalance(){
+  if(!keypair||!connection)return;
+  try{
+    balance=await connection.getBalance(keypair.publicKey)/LAMPORTS;
+    document.getElementById('headerStatus').innerHTML=`<span class="bal">${balance.toFixed(4)} SOL</span><br/>${pubkey.slice(0,8)}…${pubkey.slice(-4)}`;
+  }catch{}
+}
+
+// ════════════════════════════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════════════════════════════
+function renderDashboard(){renderOpenList();renderClosedList();renderScanList();updateStats();}
+function renderOpenList(){
+  const el=document.getElementById('openList');
+  if(!positions.length){el.innerHTML='<div class="empty">No open positions</div>';return;}
+  el.innerHTML=positions.map(p=>{
+    const s=((Date.now()-p.buyTime)/1000).toFixed(0);
+    return`<div class="pos-card"><div class="pos-top"><span class="pos-sym">${esc(p.symbol)}</span><span class="pos-badge" style="background:rgba(240,192,64,0.15);color:var(--yellow)">${s}s</span></div><div class="pos-bot"><span class="pos-detail">Entry $${p.entryPriceUsd.toExponential(3)}</span><span class="pos-detail">${(p.amountLamports/LAMPORTS).toFixed(3)} SOL</span><span class="pos-detail" style="opacity:0.6">timeout in ${Math.max(0,settings.maxHoldSecs-s)}s</span></div></div>`;
+  }).join('');
+}
+function renderClosedList(){
+  const el=document.getElementById('closedList');
+  if(!closed.length){el.innerHTML='<div class="empty">No closed trades yet</div>';return;}
+  el.innerHTML=[...closed].reverse().map(t=>{
+    const col=t.pnlPct>=0?'var(--green)':'var(--red)';
+    const bg=t.pnlPct>=0?'rgba(0,232,138,0.12)':'rgba(255,85,85,0.12)';
+    return`<div class="pos-card"><div class="pos-top"><span class="pos-sym">${esc(t.symbol)}</span><span class="pos-badge" style="background:${bg};color:${col}">${t.pnlPct>=0?'+':''}${t.pnlPct.toFixed(2)}%</span></div><div class="pos-bot"><span class="pos-detail">PnL: ${t.pnlSol>=0?'+':''}${t.pnlSol.toFixed(6)} SOL</span></div></div>`;
+  }).join('');
+}
+function renderScanList(){
+  const el=document.getElementById('scanList');
+  if(!lastCands.length){el.innerHTML='<div class="empty">Waiting for scan…</div>';return;}
+  el.innerHTML=lastCands.slice(0,10).map(c=>
+    `<div class="scan-row"><span class="scan-sym">${esc(c.symbol)}</span><span class="scan-spike" style="color:var(--green)">↑${c.priceChange5m.toFixed(1)}%</span><span class="scan-liq" style="color:var(--yellow)">$${(c.avgBuySize/1000).toFixed(1)}k avg</span><span class="scan-liq">${c.buyCount} buys</span></div>`
+  ).join('');
+}
+function updateStats(){
+  document.getElementById('statOpen').textContent=positions.length;
+  document.getElementById('statClosed').textContent=closed.length;
+  const pnl=closed.reduce((s,t)=>s+t.pnlSol,0);
+  const el=document.getElementById('statPnl');
+  el.textContent=(pnl>=0?'+':'')+pnl.toFixed(6)+' SOL';
+  el.style.color=pnl>=0?'var(--green)':'var(--red)';
+}
+setInterval(()=>{if(positions.length)renderOpenList();},1000);
+
+// ════════════════════════════════════════════════════════════════
+// SETTINGS
+// ════════════════════════════════════════════════════════════════
+function renderSettings(){
+  document.getElementById('settingsContainer').innerHTML=SETTING_DEFS.map(d=>`<div class="setting-row"><label class="setting-label">${d.label}</label><input type="number" class="setting-input" value="${settings[d.key]}" step="${d.step}" min="${d.min}" onchange="settings['${d.key}']=Math.max(${d.min},parseFloat(this.value)||${d.min})"/></div>`).join('');
+}
+function resetSettings(){settings={...DEFAULTS};renderSettings();log('Settings reset');}
+
+// ════════════════════════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════════════════════════
+function switchTab(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  [...document.querySelectorAll('.tab')].find(t=>t.textContent.toLowerCase().includes(name)).classList.add('active');
+  if(name==='settings')renderSettings();
+}
+
+// ════════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════════
+(function(){renderSettings();renderLog();log('Ready. Paste your private key and tap Load.');})();
+</script>
+</body>
+</html>
