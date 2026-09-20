@@ -18,13 +18,15 @@ cd Hshsbd
 
 ## 2. Put an icon on your Desktop
 
-**macOS / Linux**
+**macOS** — double-click `launcher/Install Desktop Icon.command`.
+
+**Windows** — double-click `launcher\install-desktop-icon.bat`.
+
+**Linux**
 
 ```bash
 ./launcher/install-desktop-icon.sh
 ```
-
-**Windows** — double-click `launcher\install-desktop-icon.bat`.
 
 That creates a **Fly Trader** icon on your Desktop (on Linux it also lands in your
 application menu, on macOS it's a real `Fly Trader.app`). Double-click it and the
@@ -112,6 +114,7 @@ Trading logic, filters, defaults and UI are untouched.
 | `launcher/fly_trader.py` | The launcher: local server + browser. |
 | `launcher/fly-trader.command` / `.sh` / `.bat` | Double-clickable wrappers. |
 | `launcher/install-desktop-icon.*` | Creates the Desktop icon. |
+| `launcher/Install Desktop Icon.command` | Double-clickable version of the above, for macOS. |
 | `launcher/make_icon.py` | Regenerates the icon art. |
 | `vendor/` | Vendored `@solana/web3.js` bundle. |
 | `test/` | End-to-end browser test of the bot loop. See `test/README.md`. |
