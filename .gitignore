@@ -1,0 +1,6 @@
+# Local machine config — holds your RPC endpoint / API key. Never commit this.
+config.local.js
+
+__pycache__/
+*.pyc
+.DS_Store

@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
 <title>MEMECOIN SNIPER</title>
+<script src="config.local.js"></script>
 <script src="https://unpkg.com/@solana/web3.js@1.95.8/lib/index.iife.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -151,7 +152,7 @@ const SETTING_DEFS=[
 // STATE
 // ════════════════════════════════════════════════════════════════
 let settings={...DEFAULTS}, keypair=null, pubkey=null;
-let rpcUrl="https://api.mainnet-beta.solana.com", connection=null, balance=null;
+let rpcUrl=(window.FLY_RPC_URL||"https://api.mainnet-beta.solana.com"), connection=null, balance=null;
 let botRunning=false, stopFlag=false;
 let positions=[], closed=[], seenTokens=new Set(), lastCands=[], logs=[];
 
