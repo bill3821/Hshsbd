@@ -83,7 +83,24 @@ python3 launcher/fly_trader.py --no-browser
 | macOS: "can't be opened, unidentified developer" | Right-click `Fly Trader.app` → **Open** → **Open**. |
 | Wallet loads but balance is wrong or slow | Your RPC is rate-limiting. Re-run with `--set-rpc` and use a paid endpoint. |
 | "Invalid key" | The app wants a base58 secret key, not a seed phrase or a JSON array. |
-| Page is blank | The `@solana/web3.js` bundle is loaded from unpkg — check your connection. |
+| Page is blank | Check `vendor/solana-web3.iife.min.js` is present — that's the Solana library. |
+
+## Changes from the original single file
+
+- **`@solana/web3.js` is vendored** into `vendor/` instead of being pulled from
+  unpkg on every load. If the CDN is slow or blocked the wallet can't load and
+  the bot can't sign anything, so the bundle now ships with the app. The unpkg
+  copy stays as a fallback. See `vendor/README.md`.
+- **Transaction-version detection was fixed.** Jupiter returns v0 versioned
+  transactions by default. The original check read the version bit from byte 0
+  of the serialized transaction, but that byte is the signature count, so every
+  swap went to the legacy parser and failed with
+  `✗ Sign/send: Versioned messages must be deserialized...`. No trade could
+  complete. The bit is now read from the message, after the signature array.
+- **The RPC endpoint is configurable** via `config.local.js`, rather than being
+  hardcoded to the public mainnet endpoint.
+
+Trading logic, filters, defaults and UI are untouched.
 
 ## Files
 
@@ -96,3 +113,5 @@ python3 launcher/fly_trader.py --no-browser
 | `launcher/fly-trader.command` / `.sh` / `.bat` | Double-clickable wrappers. |
 | `launcher/install-desktop-icon.*` | Creates the Desktop icon. |
 | `launcher/make_icon.py` | Regenerates the icon art. |
+| `vendor/` | Vendored `@solana/web3.js` bundle. |
+| `test/` | End-to-end browser test of the bot loop. See `test/README.md`. |

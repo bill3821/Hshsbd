@@ -1,0 +1,17 @@
+{
+  "name": "fly-trader-tests",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "fixtures": "node fixture.cjs",
+    "e2e": "node e2e.mjs",
+    "e2e:legacy": "TX_MODE=legacy node e2e.mjs",
+    "verify": "node verifysig.cjs",
+    "sigcheck": "node sigcheck.cjs"
+  },
+  "devDependencies": {
+    "@solana/web3.js": "1.95.8",
+    "playwright": "^1.56.1",
+    "tweetnacl": "^1.0.3"
+  }
+}

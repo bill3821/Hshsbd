@@ -5,7 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
 <title>MEMECOIN SNIPER</title>
 <script src="config.local.js"></script>
-<script src="https://unpkg.com/@solana/web3.js@1.95.8/lib/index.iife.min.js"></script>
+<script src="vendor/solana-web3.iife.min.js"></script>
+<script>
+// Fall back to the CDN only if the vendored copy is missing.
+if(!window.solanaWeb3){var s=document.createElement('script');s.src='https://unpkg.com/@solana/web3.js@1.95.8/lib/index.iife.min.js';s.async=false;document.head.appendChild(s);}
+</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 :root{
@@ -220,7 +224,13 @@ async function loadKey(){
 // ════════════════════════════════════════════════════════════════
 async function signAndSend(base64Tx){
   const raw=Uint8Array.from(atob(base64Tx),c=>c.charCodeAt(0));
-  const isVersioned=(raw[0]&0x80)!==0;
+  // The version bit sits on the MESSAGE, which starts after the signature
+  // array: one compact-u16 count (always a single byte — a tx can never fit
+  // 128 signatures) followed by 64 empty bytes per signature. Reading byte 0
+  // instead just reads the signature count, so every Jupiter v0 transaction
+  // got fed to the legacy parser and threw.
+  const msgStart=1+raw[0]*64;
+  const isVersioned=(raw[msgStart]&0x80)!==0;
   log('TX type: '+(isVersioned?'versioned':'legacy'));
   if(isVersioned){
     const vTx=solanaWeb3.VersionedTransaction.deserialize(raw);
