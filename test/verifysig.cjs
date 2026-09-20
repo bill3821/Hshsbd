@@ -1,7 +1,12 @@
 const web3 = require('@solana/web3.js');
 const nacl = require('tweetnacl');
 const fx = require('./fixture.json');
-const sent = require('./sent.json');   // legacy run (last written)
+const fs = require('fs');
+if (!fs.existsSync(__dirname + '/sent.json')) {
+  console.error('sent.json missing — run `node e2e.mjs` first; it writes the captured transactions.');
+  process.exit(1);
+}
+const sent = require('./sent.json');   // whichever run wrote it last
 
 console.log('captured transactions:', sent.length);
 sent.forEach((b64, i) => {

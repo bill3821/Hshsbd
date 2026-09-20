@@ -23,6 +23,13 @@ TX_MODE=legacy node e2e.mjs         # legacy transactions
 node verifysig.cjs                  # check the captured signatures are valid
 ```
 
+If your machine or CI image already ships a Chromium and you can't run
+`playwright install`, point the test at it instead:
+
+```bash
+CHROMIUM_PATH=/path/to/chromium node e2e.mjs
+```
+
 `e2e.mjs` exits non-zero on failure, so it works in CI. It asserts one closed
 trade, exactly two Jupiter swap calls (buy + sell), and zero page errors.
 

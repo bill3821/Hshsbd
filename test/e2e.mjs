@@ -13,7 +13,11 @@ const SWAP_TX = TX_MODE === 'legacy' ? fx.legacyB64 : fx.versionedB64;
 const seen = { rpc: [], quotes: [], swaps: 0, sentTxB64: [] };
 let sellProfitable = false;   // flipped on after the buy so take-profit fires
 
-const b = await chromium.launch();
+// CHROMIUM_PATH lets you point at a browser that's already on the machine,
+// for CI images that ship one and block `playwright install`.
+const b = await chromium.launch(
+  process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}
+);
 const page = await b.newPage();
 const logs = [];
 page.on('pageerror', e => logs.push('PAGEERROR ' + e.message));
